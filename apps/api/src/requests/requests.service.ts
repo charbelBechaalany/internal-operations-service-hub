@@ -4,12 +4,13 @@ import { randomUUID } from 'crypto';
 import { DepartmentsRepository } from '../departments/departments.repository';
 import { InvalidTransitionError } from '../common/invalid-transition.error';
 import { NotDepartmentHeadError } from '../common/not-department-head.error';
+import { RequestConflictError } from '../common/request-conflict.error';
 import { RequestNotFoundError } from '../common/request-not-found.error';
 import { RequestAction } from './domain/request-action.enum';
 import { RequestStatus } from './domain/request-status.enum';
 import { RequestRecord } from './domain/request.entity';
 import { explainRefusal, resolveTransition } from './domain/transitions';
-import { RequestsRepository } from './requests.repository';
+import { RequestsRepository, StaleWriteError } from './requests.repository';
 
 @Injectable()
 export class RequestsService {
@@ -99,6 +100,14 @@ export class RequestsService {
    *
    * Keeping this in one method is what makes the invariant enforceable rather
    * than merely intended: there is no second path that could skip the check.
+   *
+   * The save is conditional on the version this method read. If someone
+   * else's write landed first, the repository rejects it with
+   * StaleWriteError instead of overwriting; this method reloads the row and
+   * turns that into RequestConflictError, carrying what is actually stored
+   * now rather than what this caller assumed. That is a different failure
+   * from an illegal move: the transition above was legal against the state
+   * this method read, it just lost the race to reach storage first.
    */
   private async applyTransition(
     id: string,
@@ -119,7 +128,16 @@ export class RequestsService {
     request.status = nextStatus;
     mutate?.(request);
 
-    await this.repository.save(request);
+    try {
+      await this.repository.save(request);
+    } catch (error) {
+      if (error instanceof StaleWriteError) {
+        const current = await this.findById(id);
+        throw new RequestConflictError(id, current);
+      }
+      throw error;
+    }
+
     return request;
   }
 

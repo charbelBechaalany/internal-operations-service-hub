@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { RequestRecord } from '../domain/request.entity';
-import { RequestsRepository } from '../requests.repository';
+import { RequestsRepository, StaleWriteError } from '../requests.repository';
 import { toDomain, toOrmEntity } from './request.mapper';
 import { RequestOrmEntity } from './request.orm-entity';
 
@@ -11,9 +11,19 @@ import { RequestOrmEntity } from './request.orm-entity';
  * SQLite via TypeORM, behind the same port InMemoryRequestsRepository used
  * to implement. Nothing in the service or the domain moved to get here.
  *
- * save() writes version + 1 unconditionally and cannot fail on a stale
- * write. Comparing the incoming version against what is currently stored is
- * a separate, later change.
+ * save() on a new record (version 0) inserts unconditionally, since nothing
+ * else could be racing a row that does not exist yet.
+ *
+ * save() on an existing record is a conditional UPDATE guarded by
+ * `WHERE id = :id AND version = :version`, using the version the caller
+ * loaded (request.version is left untouched by the service's mutation, so it
+ * is still the base version the actor read). If no row matches - because
+ * someone else's write already moved the version on - `affected` is 0 and we
+ * throw StaleWriteError rather than silently doing nothing.
+ *
+ * This is a plain conditional UPDATE with an affected-row check, not an
+ * ORM-specific locking feature, so the same query shape works unchanged
+ * against Postgres.
  */
 @Injectable()
 export class TypeOrmRequestsRepository extends RequestsRepository {
@@ -26,8 +36,34 @@ export class TypeOrmRequestsRepository extends RequestsRepository {
 
   async save(request: RequestRecord): Promise<void> {
     const row = toOrmEntity(request);
-    row.version = request.version + 1;
-    await this.repository.save(row);
+
+    if (request.version === 0) {
+      row.version = 1;
+      await this.repository.insert(row);
+      return;
+    }
+
+    const result = await this.repository
+      .createQueryBuilder()
+      .update(RequestOrmEntity)
+      .set({
+        title: row.title,
+        description: row.description,
+        submittedAt: row.submittedAt,
+        requesterId: row.requesterId,
+        departmentId: row.departmentId,
+        status: row.status,
+        assigneeId: row.assigneeId,
+        cancellationReason: row.cancellationReason,
+        completedAt: row.completedAt,
+        version: request.version + 1,
+      })
+      .where('id = :id AND version = :version', { id: request.id, version: request.version })
+      .execute();
+
+    if (result.affected === 0) {
+      throw new StaleWriteError(request.id);
+    }
   }
 
   async findById(id: string): Promise<RequestRecord | null> {

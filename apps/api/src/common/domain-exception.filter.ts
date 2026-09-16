@@ -3,6 +3,7 @@ import { Response } from 'express';
 
 import { InvalidTransitionError } from './invalid-transition.error';
 import { NotDepartmentHeadError } from './not-department-head.error';
+import { RequestConflictError } from './request-conflict.error';
 import { RequestNotFoundError } from './request-not-found.error';
 
 /**
@@ -15,11 +16,17 @@ import { RequestNotFoundError } from './request-not-found.error';
  * The specification requires every refusal to say what happened and what to do
  * next, which is why the body carries the current status and the attempted
  * action rather than just a message.
+ *
+ * INVALID_TRANSITION and REQUEST_CONFLICT are both 409s but distinct codes:
+ * the first means the move is illegal no matter who asked or when; the
+ * second means it was legal against what the actor saw, but someone else's
+ * write got there first. A client needs to tell them apart - one calls for
+ * a different action, the other for looking again.
  */
-@Catch(InvalidTransitionError, RequestNotFoundError, NotDepartmentHeadError)
+@Catch(InvalidTransitionError, RequestNotFoundError, NotDepartmentHeadError, RequestConflictError)
 export class DomainExceptionFilter implements ExceptionFilter {
   catch(
-    error: InvalidTransitionError | RequestNotFoundError | NotDepartmentHeadError,
+    error: InvalidTransitionError | RequestNotFoundError | NotDepartmentHeadError | RequestConflictError,
     host: ArgumentsHost,
   ) {
     const response = host.switchToHttp().getResponse<Response>();
@@ -38,6 +45,15 @@ export class DomainExceptionFilter implements ExceptionFilter {
         message: error.message,
         requestId: error.requestId,
         departmentId: error.departmentId,
+      });
+    }
+
+    if (error instanceof RequestConflictError) {
+      return response.status(HttpStatus.CONFLICT).json({
+        error: 'REQUEST_CONFLICT',
+        message: error.message,
+        requestId: error.requestId,
+        currentState: error.currentState,
       });
     }
 
