@@ -20,12 +20,19 @@ export class RequestsService {
    * Creation is not a transition: there is no prior state to move from, which
    * is why it does not go through the transition table.
    */
-  async create(title: string, description: string): Promise<RequestRecord> {
+  async create(
+    title: string,
+    description: string,
+    departmentId: string,
+    requesterId: string,
+  ): Promise<RequestRecord> {
     const request: RequestRecord = {
       id: randomUUID(),
       title,
       description,
       submittedAt: new Date(),
+      requesterId,
+      departmentId,
       status: RequestStatus.Submitted,
       assigneeId: null,
       cancellationReason: null,

@@ -2,7 +2,9 @@ import { mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { DataSource, DataSourceOptions } from 'typeorm';
 
+import { DepartmentOrmEntity } from '../departments/infrastructure/department.orm-entity';
 import { RequestOrmEntity } from '../requests/infrastructure/request.orm-entity';
+import { UserOrmEntity } from '../users/infrastructure/user.orm-entity';
 
 /**
  * process.cwd() depends on where the process was started, not where this
@@ -23,7 +25,7 @@ mkdirSync(dirname(databasePath), { recursive: true });
 export const dataSourceOptions: DataSourceOptions = {
   type: 'sqlite',
   database: databasePath,
-  entities: [RequestOrmEntity],
+  entities: [RequestOrmEntity, DepartmentOrmEntity, UserOrmEntity],
   migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
   synchronize: false,
   migrationsRun: false,

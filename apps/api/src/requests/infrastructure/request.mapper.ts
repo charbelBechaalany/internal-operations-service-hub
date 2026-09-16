@@ -10,6 +10,8 @@ export function toDomain(row: RequestOrmEntity): RequestRecord {
     title: row.title,
     description: row.description,
     submittedAt: row.submittedAt,
+    requesterId: row.requesterId,
+    departmentId: row.departmentId,
     status: row.status,
     assigneeId: row.assigneeId,
     cancellationReason: row.cancellationReason,
@@ -24,6 +26,8 @@ export function toOrmEntity(request: RequestRecord): RequestOrmEntity {
   row.title = request.title;
   row.description = request.description;
   row.submittedAt = request.submittedAt;
+  row.requesterId = request.requesterId;
+  row.departmentId = request.departmentId;
   row.status = request.status;
   row.assigneeId = request.assigneeId;
   row.cancellationReason = request.cancellationReason;

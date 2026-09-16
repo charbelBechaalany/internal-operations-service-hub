@@ -34,6 +34,12 @@ export class RequestOrmEntity {
   @Column('datetime')
   submittedAt: Date;
 
+  @Column('varchar')
+  requesterId: string;
+
+  @Column('varchar')
+  departmentId: string;
+
   @Column({ type: 'simple-enum', enum: RequestStatus })
   status: RequestStatus;
 

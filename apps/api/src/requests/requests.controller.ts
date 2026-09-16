@@ -20,7 +20,7 @@ export class RequestsController {
 
   @Post()
   async create(@Body() dto: CreateRequestDto) {
-    return this.requests.create(dto.title, dto.description);
+    return this.requests.create(dto.title, dto.description, dto.departmentId, dto.requesterId);
   }
 
   @Get()
