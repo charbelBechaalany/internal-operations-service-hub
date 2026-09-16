@@ -12,6 +12,11 @@ import { RequestStatus } from './request-status.enum';
  *
  * The content fields are readonly. A submitted request is a fixed record, so
  * the type itself gives no way to edit it.
+ *
+ * version exists for optimistic locking but is not yet enforced: the
+ * repository advances it on every save, and nothing reads it back to reject
+ * a stale write. That check is a separate, later change. A record not yet
+ * persisted carries 0; the first save stores it as 1.
  */
 export interface RequestRecord {
   readonly id: string;
@@ -23,4 +28,5 @@ export interface RequestRecord {
   assigneeId: string | null;
   cancellationReason: string | null;
   completedAt: Date | null;
+  version: number;
 }

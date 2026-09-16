@@ -30,6 +30,7 @@ export class RequestsService {
       assigneeId: null,
       cancellationReason: null,
       completedAt: null,
+      version: 0,
     };
 
     await this.repository.save(request);

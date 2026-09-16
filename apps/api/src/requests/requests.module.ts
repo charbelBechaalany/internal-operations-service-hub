@@ -1,19 +1,22 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { InMemoryRequestsRepository } from './in-memory-requests.repository';
+import { RequestOrmEntity } from './infrastructure/request.orm-entity';
+import { TypeOrmRequestsRepository } from './infrastructure/typeorm-requests.repository';
 import { RequestsController } from './requests.controller';
 import { RequestsRepository } from './requests.repository';
 import { RequestsService } from './requests.service';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([RequestOrmEntity])],
   controllers: [RequestsController],
   providers: [
     RequestsService,
     {
-      // The one line that changes when a database replaces the in-memory
-      // store. Nothing in the service or the domain moves.
+      // The line that changes when storage changes. Nothing in the service
+      // or the domain moves.
       provide: RequestsRepository,
-      useClass: InMemoryRequestsRepository,
+      useClass: TypeOrmRequestsRepository,
     },
   ],
 })
