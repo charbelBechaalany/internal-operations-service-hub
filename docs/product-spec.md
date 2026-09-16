@@ -191,6 +191,9 @@ Open questions that need answers from stakeholders before the affected scope can
 * Approval from outside the receiving department. The HOD is the only approver for now.
 * Reopening completed requests. Completed is final in the first version, and a recurring problem is raised as a new request.
 * Integration with a central identity provider. Accounts live inside the system in the first version.
+* Authentication. The acting user arrives as an X-User-Id header. Identity is asserted, not verified. The authorization rules are real and enforced; what is missing is proof the actor is who they claim.
+* Account validity checks. Nothing verifies the acting user exists or is active, because that needs an account lifecycle this slice does not have.
+* Audit logging of denied attempts. The audit entity is in the data model and not yet implemented, so a 403 is refused correctly but recorded nowhere.
 
 ---
 

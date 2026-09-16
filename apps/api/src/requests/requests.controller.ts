@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 
+import { ActorId } from '../common/actor-id.decorator';
 import { AssignRequestDto } from './dto/assign-request.dto';
 import { CancelRequestDto } from './dto/cancel-request.dto';
 import { CreateRequestDto } from './dto/create-request.dto';
@@ -19,8 +20,8 @@ export class RequestsController {
   constructor(private readonly requests: RequestsService) {}
 
   @Post()
-  async create(@Body() dto: CreateRequestDto) {
-    return this.requests.create(dto.title, dto.description, dto.departmentId, dto.requesterId);
+  async create(@Body() dto: CreateRequestDto, @ActorId() actorId: string) {
+    return this.requests.create(dto.title, dto.description, dto.departmentId, actorId);
   }
 
   @Get()
@@ -35,14 +36,18 @@ export class RequestsController {
 
   @Post(':id/approve')
   @HttpCode(HttpStatus.OK)
-  async approve(@Param('id') id: string) {
-    return this.requests.approve(id);
+  async approve(@Param('id') id: string, @ActorId() actorId: string) {
+    return this.requests.approve(id, actorId);
   }
 
   @Post(':id/assign')
   @HttpCode(HttpStatus.OK)
-  async assign(@Param('id') id: string, @Body() dto: AssignRequestDto) {
-    return this.requests.assign(id, dto.assigneeId);
+  async assign(
+    @Param('id') id: string,
+    @Body() dto: AssignRequestDto,
+    @ActorId() actorId: string,
+  ) {
+    return this.requests.assign(id, dto.assigneeId, actorId);
   }
 
   @Post(':id/complete')

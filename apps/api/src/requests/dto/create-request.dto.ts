@@ -14,8 +14,4 @@ export class CreateRequestDto {
   @IsString()
   @IsNotEmpty({ message: 'A request must have an owning department.' })
   departmentId: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'A request must have a requester.' })
-  requesterId: string;
 }

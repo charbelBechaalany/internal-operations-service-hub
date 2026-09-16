@@ -2,6 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/commo
 import { Response } from 'express';
 
 import { InvalidTransitionError } from './invalid-transition.error';
+import { NotDepartmentHeadError } from './not-department-head.error';
 import { RequestNotFoundError } from './request-not-found.error';
 
 /**
@@ -15,9 +16,12 @@ import { RequestNotFoundError } from './request-not-found.error';
  * next, which is why the body carries the current status and the attempted
  * action rather than just a message.
  */
-@Catch(InvalidTransitionError, RequestNotFoundError)
+@Catch(InvalidTransitionError, RequestNotFoundError, NotDepartmentHeadError)
 export class DomainExceptionFilter implements ExceptionFilter {
-  catch(error: InvalidTransitionError | RequestNotFoundError, host: ArgumentsHost) {
+  catch(
+    error: InvalidTransitionError | RequestNotFoundError | NotDepartmentHeadError,
+    host: ArgumentsHost,
+  ) {
     const response = host.switchToHttp().getResponse<Response>();
 
     if (error instanceof RequestNotFoundError) {
@@ -25,6 +29,15 @@ export class DomainExceptionFilter implements ExceptionFilter {
         error: 'REQUEST_NOT_FOUND',
         message: error.message,
         requestId: error.requestId,
+      });
+    }
+
+    if (error instanceof NotDepartmentHeadError) {
+      return response.status(HttpStatus.FORBIDDEN).json({
+        error: 'NOT_DEPARTMENT_HEAD',
+        message: error.message,
+        requestId: error.requestId,
+        departmentId: error.departmentId,
       });
     }
 

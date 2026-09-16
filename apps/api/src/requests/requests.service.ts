@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
+import { DepartmentsRepository } from '../departments/departments.repository';
 import { InvalidTransitionError } from '../common/invalid-transition.error';
+import { NotDepartmentHeadError } from '../common/not-department-head.error';
 import { RequestNotFoundError } from '../common/request-not-found.error';
 import { RequestAction } from './domain/request-action.enum';
 import { RequestStatus } from './domain/request-status.enum';
@@ -11,7 +13,10 @@ import { RequestsRepository } from './requests.repository';
 
 @Injectable()
 export class RequestsService {
-  constructor(private readonly repository: RequestsRepository) {}
+  constructor(
+    private readonly repository: RequestsRepository,
+    private readonly departments: DepartmentsRepository,
+  ) {}
 
   /**
    * Creates a request. It enters Submitted, which the specification names as
@@ -56,7 +61,8 @@ export class RequestsService {
     return this.repository.findAll();
   }
 
-  async approve(id: string): Promise<RequestRecord> {
+  async approve(id: string, actorId: string): Promise<RequestRecord> {
+    await this.assertIsDepartmentHead(id, actorId);
     return this.applyTransition(id, RequestAction.Approve);
   }
 
@@ -65,7 +71,8 @@ export class RequestsService {
    * treats reassignment as a change of owner rather than a change of state:
    * the request is InProgress either way.
    */
-  async assign(id: string, assigneeId: string): Promise<RequestRecord> {
+  async assign(id: string, assigneeId: string, actorId: string): Promise<RequestRecord> {
+    await this.assertIsDepartmentHead(id, actorId);
     return this.applyTransition(id, RequestAction.Assign, (request) => {
       request.assigneeId = assigneeId;
     });
@@ -114,5 +121,21 @@ export class RequestsService {
 
     await this.repository.save(request);
     return request;
+  }
+
+  /**
+   * Only the head of the request's owning department may approve or assign
+   * (reassignment included, since it shares the Assign action). Reads the
+   * department the request already points to and compares its stored
+   * headId to the actor - the two stored fields the data model says answer
+   * this question, nothing derived or looked up further.
+   */
+  private async assertIsDepartmentHead(requestId: string, actorId: string): Promise<void> {
+    const request = await this.findById(requestId);
+    const department = await this.departments.findById(request.departmentId);
+
+    if (!department || department.headId !== actorId) {
+      throw new NotDepartmentHeadError(request.id, request.departmentId);
+    }
   }
 }
