@@ -15,7 +15,10 @@ const config: Config = {
   rootDir: '.',
   testRegex: '.*\\.spec\\.ts$',
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    // tsconfig.json leaves rootDir unset (tsconfig.build.json supplies it
+    // for the Nest build); without one, ts-jest's per-file program can't
+    // resolve a common source directory, so set it here for tests too.
+    '^.+\\.(t|j)s$': ['ts-jest', { tsconfig: { rootDir: '.' } }],
   },
   moduleNameMapper: pathsToModuleNameMapper(paths, { prefix: '<rootDir>/' }),
   collectCoverageFrom: [

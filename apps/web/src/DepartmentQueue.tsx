@@ -24,13 +24,25 @@ interface Props {
 }
 
 export function DepartmentQueue({ actorId, departmentId, isHead, requests, onUpdate, onNotFound }: Props) {
-  // Display-only visibility filter. The API returns every request to every
-  // caller regardless of role (contract §1, "Visibility") — nothing below
-  // is enforced server-side, so this hides rows in the browser but does not
-  // protect them; the same data is one network request away. A head sees
-  // the full department queue; anyone else sees only requests assigned to
-  // them, which is also why Submitted and Approved requests never show for
-  // a non-head — assigneeId is null on both, so neither can match.
+  // Display-only visibility filter, scoped to the actor's own department.
+  // This is the one place that decides which rows reach the browser at
+  // all, and it exists to match product-spec.md's "a department member
+  // sees only what is assigned to them": a head sees the full queue,
+  // anyone else sees only requests already assigned to them. A Submitted,
+  // unassigned request is nobody's yet, so it shows for the head alone —
+  // there is no assignee for it to match against.
+  //
+  // This is still not a security boundary — the API returns every request
+  // to every caller regardless of role (contract §1, "Visibility") — but
+  // it is a different concern from the one below. Once a row *is* showing,
+  // every action its status allows renders unconditionally (see QueueRow
+  // below), and the server's NOT_DEPARTMENT_HEAD refusal is what actually
+  // enforces who may approve/assign/cancel it: hiding a button prevents a
+  // mistake, not an attack (architecture.md §6). But that principle is
+  // about actions on data already on screen — it says nothing about which
+  // rows belong on screen in the first place, and product-spec.md answers
+  // that question separately. So this filter stays narrow even though the
+  // buttons on a visible row do not.
   const queue = requests
     .filter((r) => r.departmentId === departmentId)
     .filter((r) => isHead || r.assigneeId === actorId)
@@ -63,7 +75,6 @@ export function DepartmentQueue({ actorId, departmentId, isHead, requests, onUpd
           <QueueRow
             key={r.id}
             actorId={actorId}
-            isHead={isHead}
             request={r}
             onUpdate={onUpdate}
             onNotFound={onNotFound}
@@ -91,13 +102,12 @@ export function StatusPill({ status }: { status: RequestStatus }) {
 
 interface RowProps {
   actorId: string
-  isHead: boolean
   request: RequestDto
   onUpdate: (updated: RequestDto) => void
   onNotFound: (requestId: string) => void
 }
 
-function QueueRow({ actorId, isHead, request, onUpdate, onNotFound }: RowProps) {
+function QueueRow({ actorId, request, onUpdate, onNotFound }: RowProps) {
   const [error, setError] = useState<ApiError | null>(null)
   const [busy, setBusy] = useState(false)
   const [pendingType, setPendingType] = useState<PendingType | null>(null)
@@ -175,17 +185,17 @@ function QueueRow({ actorId, isHead, request, onUpdate, onNotFound }: RowProps) 
       <td>{request.assigneeId ? <UserName id={request.assigneeId} /> : '—'}</td>
       <td>
         <div className="request-actions">
-          {isHead && request.status === 'Submitted' && (
+          {request.status === 'Submitted' && (
             <button className="action-btn" disabled={busy} onClick={() => openDialog('approve')}>
               Approve
             </button>
           )}
-          {isHead && (request.status === 'Approved' || request.status === 'InProgress') && (
+          {(request.status === 'Approved' || request.status === 'InProgress') && (
             <button className="action-btn" disabled={busy} onClick={() => openDialog('assign')}>
               {alreadyAssigned ? 'Reassign' : 'Assign'}
             </button>
           )}
-          {isHead && NON_TERMINAL.includes(request.status) && (
+          {NON_TERMINAL.includes(request.status) && (
             <button className="action-btn action-btn-danger" disabled={busy} onClick={() => openDialog('cancel')}>
               Cancel
             </button>
