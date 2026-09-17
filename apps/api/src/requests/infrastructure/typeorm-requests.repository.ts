@@ -24,6 +24,14 @@ import { RequestOrmEntity } from './request.orm-entity';
  * This is a plain conditional UPDATE with an affected-row check, not an
  * ORM-specific locking feature, so the same query shape works unchanged
  * against Postgres.
+ *
+ * save() writes the persisted version back onto the caller's `request`
+ * object once the write actually lands. Without this, the RequestRecord the
+ * service returns to its caller would still carry the version it read
+ * before the write - a client holding it would be handed a version already
+ * one behind what is stored, which fails that client's own next write for
+ * no reason. This is part of the port's contract (see requests.repository.ts),
+ * not a detail specific to this backend.
  */
 @Injectable()
 export class TypeOrmRequestsRepository extends RequestsRepository {
@@ -40,9 +48,11 @@ export class TypeOrmRequestsRepository extends RequestsRepository {
     if (request.version === 0) {
       row.version = 1;
       await this.repository.insert(row);
+      request.version = 1;
       return;
     }
 
+    const nextVersion = request.version + 1;
     const result = await this.repository
       .createQueryBuilder()
       .update(RequestOrmEntity)
@@ -56,7 +66,7 @@ export class TypeOrmRequestsRepository extends RequestsRepository {
         assigneeId: row.assigneeId,
         cancellationReason: row.cancellationReason,
         completedAt: row.completedAt,
-        version: request.version + 1,
+        version: nextVersion,
       })
       .where('id = :id AND version = :version', { id: request.id, version: request.version })
       .execute();
@@ -64,6 +74,8 @@ export class TypeOrmRequestsRepository extends RequestsRepository {
     if (result.affected === 0) {
       throw new StaleWriteError(request.id);
     }
+
+    request.version = nextVersion;
   }
 
   async findById(id: string): Promise<RequestRecord | null> {

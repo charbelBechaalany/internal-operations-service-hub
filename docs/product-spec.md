@@ -194,6 +194,8 @@ Open questions that need answers from stakeholders before the affected scope can
 * Authentication. The acting user arrives as an X-User-Id header. Identity is asserted, not verified. The authorization rules are real and enforced; what is missing is proof the actor is who they claim.
 * Account validity checks. Nothing verifies the acting user exists or is active, because that needs an account lifecycle this slice does not have.
 * Audit logging of denied attempts. The audit entity is in the data model and not yet implemented, so a 403 is refused correctly but recorded nowhere.
+* Actor checks on complete and cancel. The spec says only the assignee may complete and a requester may cancel only while Submitted. Neither is enforced; the approve and assign rule is the one enforced this version.
+* Assignee validation. assigneeId is stored but never checked against a user or department membership.
 
 ---
 

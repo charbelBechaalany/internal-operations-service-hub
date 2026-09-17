@@ -12,6 +12,15 @@ import { RequestRecord } from './domain/request.entity';
  * still matches what is stored, and throws StaleWriteError otherwise. This is
  * part of the port's contract, not an implementation detail, so any backend
  * behind this interface has to honour it the same way.
+ *
+ * save() must also write the version it actually persisted back onto
+ * `request.version` before returning. The service hands the same object back
+ * to its caller, so if save() leaves `.version` at the pre-write value, every
+ * write endpoint returns a version already stale by one - a client acting on
+ * it would fail its own next write against a version nothing has held since
+ * before this call. This is part of the contract for the same reason the
+ * conditional write is: get it wrong, and the concurrency guarantee the port
+ * exists to provide is undermined by the port's own response.
  */
 export abstract class RequestsRepository {
   abstract save(request: RequestRecord): Promise<void>;
