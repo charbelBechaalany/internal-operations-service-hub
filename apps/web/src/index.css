@@ -1,0 +1,522 @@
+:root {
+  color-scheme: light;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  --color-bg: #eef0f4;
+  --color-card-bg: #ffffff;
+  --color-border: #e3e6eb;
+  --color-text: #1a1d24;
+  --color-text-muted: #667085;
+
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-soft: #eef1ff;
+
+  --color-danger: #d92d20;
+  --color-danger-hover: #b42318;
+  --color-danger-bg: #fef3f2;
+  --color-danger-border: #fda29b;
+
+  --color-success: #16a34a;
+
+  --status-submitted-bg: #eef0f4;
+  --status-submitted-text: #47505f;
+  --status-approved-bg: #dbeafe;
+  --status-approved-text: #1e40af;
+  --status-inprogress-bg: #fef3c7;
+  --status-inprogress-text: #92400e;
+  --status-completed-bg: #d1fae5;
+  --status-completed-text: #05603a;
+  --status-cancelled-bg: #fee2e2;
+  --status-cancelled-text: #991b1b;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-md: 0 4px 10px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.05);
+  --shadow-lg: 0 20px 40px rgba(16, 24, 40, 0.16), 0 4px 10px rgba(16, 24, 40, 0.08);
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 480px at 12% -10%, #eef1ff 0%, transparent 60%),
+    radial-gradient(900px 420px at 100% 0%, #f2fbf7 0%, transparent 55%),
+    var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 900px;
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4) var(--space-6);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-end: var(--space-6);
+}
+
+.app-logo {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--color-primary), #7c73ff);
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.app-header h1 {
+  font-size: 1.4rem;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.app-header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  margin-block-end: var(--space-5);
+  /* No `both` fill-mode: it would leave transform: translateY(0) applied
+     permanently after the animation ends, and any non-none transform on an
+     ancestor creates a new containing block for position: fixed
+     descendants — which would trap the confirmation dialog's backdrop
+     inside this card's box instead of centering it on the viewport. */
+  animation: rise-in 0.35s var(--ease);
+  transition:
+    box-shadow 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #d7dbe3;
+}
+
+.card h2 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-4);
+}
+
+label {
+  display: block;
+  margin-block-end: var(--space-4);
+}
+
+label:last-of-type {
+  margin-block-end: var(--space-4);
+}
+
+label span {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-block-end: var(--space-1);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  transition:
+    border-color 0.15s var(--ease),
+    box-shadow 0.15s var(--ease);
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: #c7cbd4;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: 8px;
+  background: var(--color-primary);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  color: white;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background-color 0.15s var(--ease),
+    box-shadow 0.15s var(--ease),
+    transform 0.1s var(--ease);
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+button:disabled {
+  background: #d3d6dd;
+  background-image: none;
+  color: #8a8f9a;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.field-error {
+  color: var(--color-danger);
+  font-size: 0.85rem;
+  margin-block-start: var(--space-1);
+}
+
+.error-banner {
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  border-left: 3px solid var(--color-danger);
+  color: var(--color-danger-hover);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 8px;
+  margin-block-start: var(--space-2);
+  font-size: 0.85rem;
+  animation: rise-in 0.2s var(--ease);
+}
+
+.queue-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.queue-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.queue-table td {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.queue-table tbody tr {
+  transition: background-color 0.15s var(--ease);
+}
+
+.queue-table tbody tr:hover {
+  background: #fafbff;
+}
+
+.queue-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: var(--space-1) var(--space-2);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-Submitted {
+  background: var(--status-submitted-bg);
+  color: var(--status-submitted-text);
+}
+
+.status-Approved {
+  background: var(--status-approved-bg);
+  color: var(--status-approved-text);
+}
+
+.status-InProgress {
+  background: var(--status-inprogress-bg);
+  color: var(--status-inprogress-text);
+}
+
+.status-Completed {
+  background: var(--status-completed-bg);
+  color: var(--status-completed-text);
+}
+
+.status-Cancelled {
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
+}
+
+.request-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.action-btn {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  background: var(--color-primary-soft);
+  background-image: none;
+  color: var(--color-primary);
+  box-shadow: none;
+}
+
+.action-btn:hover:not(:disabled) {
+  background-color: #e0e4ff;
+  box-shadow: none;
+  transform: none;
+}
+
+.action-btn-danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-hover);
+}
+
+.action-btn-danger:hover:not(:disabled) {
+  background-color: #fde1de;
+}
+
+.link-button {
+  background: none;
+  background-image: none;
+  color: var(--color-text);
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  font-weight: 600;
+  text-align: left;
+  border-radius: 4px;
+}
+
+.link-button:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: none;
+  box-shadow: none;
+  transform: none;
+  text-decoration: underline;
+}
+
+/* Confirmation dialog */
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 22, 30, 0.45);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  z-index: 100;
+  animation: backdrop-in 0.15s var(--ease) both;
+}
+
+.dialog-card {
+  width: min(420px, 100%);
+  background: var(--color-card-bg);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5);
+  animation: dialog-in 0.2s var(--ease);
+}
+
+.dialog-card h3 {
+  margin: 0 0 var(--space-2);
+  font-size: 1.05rem;
+}
+
+.dialog-card p {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.dialog-field {
+  display: block;
+  margin-block-end: var(--space-5);
+}
+
+.dialog-field span {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-block-end: var(--space-1);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.dialog-secondary {
+  background: var(--color-card-bg);
+  background-image: none;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  box-shadow: none;
+}
+
+.dialog-secondary:hover:not(:disabled) {
+  background-color: #f5f6f8;
+  box-shadow: none;
+  transform: none;
+}
+
+.dialog-primary.dialog-danger {
+  background: var(--color-danger);
+}
+
+.dialog-primary.dialog-danger:hover:not(:disabled) {
+  background-color: var(--color-danger-hover);
+}
+
+.details-card {
+  width: min(520px, 100%);
+}
+
+.details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+
+.details-header h3 {
+  margin: 0;
+}
+
+.details-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  font-size: 0.88rem;
+}
+
+.details-list dt {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.details-list dd {
+  margin: 0;
+}
+
+/* Two classes so this beats `.dialog-card p`'s margin/color on specificity
+   rather than relying on source order, which would otherwise win since
+   `.dialog-card p` (class + type) outranks a single class selector. */
+.details-card .details-description {
+  margin: 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
